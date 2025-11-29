@@ -1,3 +1,6 @@
 [submodule "Packages/com.strada.core"]
 	path = Packages/com.strada.core
 	url = https://github.com/okandemirel/Strata.Core.git
+[submodule "Packages/com.strada.modules"]
+	path = Packages/com.strada.modules
+	url = https://github.com/okandemirel/Strata.Modules.git
