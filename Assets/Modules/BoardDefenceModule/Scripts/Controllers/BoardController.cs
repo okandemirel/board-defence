@@ -18,6 +18,7 @@ namespace BoardDefence.Controllers
         {
             Subscribe<CellClickedEvent>(OnCellClicked);
             Subscribe<DefencePlacedEvent>(OnDefencePlaced);
+            Subscribe<DefenceDestroyedEvent>(OnDefenceDestroyed);
             RegisterSignalHandler<SelectDefenceSignal>(OnSelectDefence);
             RegisterSignalHandler<PlaceDefenceSignal>(OnPlaceDefence);
         }
@@ -89,6 +90,11 @@ namespace BoardDefence.Controllers
         private void OnDefencePlaced(DefencePlacedEvent evt)
         {
             _boardModel.Place(evt.Column, evt.Row, evt.Handle);
+        }
+
+        private void OnDefenceDestroyed(DefenceDestroyedEvent evt)
+        {
+            _boardModel.Remove(evt.Column, evt.Row);
         }
 
         private int GetSlotIndexForDefenceKey(string defenceKey)

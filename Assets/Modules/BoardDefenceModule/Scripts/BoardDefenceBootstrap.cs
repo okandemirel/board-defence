@@ -57,8 +57,9 @@ namespace BoardDefence
             var services = GameBootstrapper.Services;
             var eventBus = services.Get<EventBus>();
             var boardModel = services.Get<IBoardModel>();
+            var levelContainer = services.Get<ILevelContainerService>();
 
-            _boardView?.Inject(boardModel, eventBus);
+            _boardView?.Inject(boardModel, eventBus, levelContainer);
             _boardView?.Initialize();
         }
 

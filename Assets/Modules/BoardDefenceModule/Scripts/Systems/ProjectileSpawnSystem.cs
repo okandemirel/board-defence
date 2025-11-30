@@ -1,37 +1,33 @@
-using Strada.Core.Communication;
+using Strada.Core.ECS.Systems;
 using Strada.Core.ECS.World;
-using Strada.Core.DI.Attributes;
-using Strada.Core.ECS.Core;
-using Strada.Core.Patterns.Interfaces;
-using Strada.Core.Sync;
+using Strada.Core.Modules;
 using BoardDefence.Signals;
 using BoardDefence.Components;
 using BoardDefence.Events;
 
 namespace BoardDefence.Systems
 {
-    public class ProjectileSpawnSystem : IInitializable
+    [StradaSystem(
+        Module = "BoardDefence",
+        Category = "Spawning",
+        Description = "Spawns projectile entities in response to signals",
+        Phase = UpdatePhase.Update,
+        Order = 100)]
+    public class ProjectileSpawnSystem : SystemBase
     {
-        [Inject] private EventBus _eventBus;
-        [Inject] private EntityHandleRegistry _handleRegistry;
-
-        private EntityManager EntityManager => World.Current?.EntityManager;
-
-        public void Initialize()
+        protected override void OnInitialize()
         {
-            _eventBus.RegisterSignalHandler<SpawnProjectileSignal>(SpawnProjectile);
+            RegisterSignalHandler<SpawnProjectileSignal>(SpawnProjectile);
         }
+
+        protected override void OnUpdate(float deltaTime) { }
 
         private void SpawnProjectile(SpawnProjectileSignal signal)
         {
-            var entityManager = EntityManager;
-            if (entityManager == null) return;
+            var entity = CreateEntity();
 
-            var entity = entityManager.CreateEntity();
-
-            entityManager.AddComponent(entity, new ProjectileTag());
-
-            entityManager.AddComponent(entity, new GridPositionComponent
+            EntityManager.AddComponent(entity, new ProjectileTag());
+            EntityManager.AddComponent(entity, new GridPositionComponent
             {
                 Column = 0,
                 Row = 0,
@@ -39,8 +35,7 @@ namespace BoardDefence.Systems
                 WorldY = signal.StartY,
                 WorldZ = signal.StartZ
             });
-
-            entityManager.AddComponent(entity, new ProjectileComponent
+            EntityManager.AddComponent(entity, new ProjectileComponent
             {
                 TargetEntity = signal.Target,
                 Damage = signal.Damage,
@@ -50,10 +45,10 @@ namespace BoardDefence.Systems
                 TargetZ = signal.TargetZ
             });
 
-            var handle = _handleRegistry.Register(entity);
-            var targetHandle = _handleRegistry.Register(signal.Target);
+            var handle = HandleRegistry.Register(entity);
+            var targetHandle = HandleRegistry.Register(signal.Target);
 
-            _eventBus.Publish(new ProjectileSpawnedEvent
+            Publish(new ProjectileSpawnedEvent
             {
                 Handle = handle,
                 TargetHandle = targetHandle

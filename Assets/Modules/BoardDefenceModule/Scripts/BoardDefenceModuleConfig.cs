@@ -1,8 +1,9 @@
 using UnityEngine;
 using Strada.Core.DI;
 using Strada.Core.Modules;
-using Strada.Core.Sync;
 using Strada.Core.ECS.World;
+using Strada.Core.Bootstrap;
+using Strada.Core.Sync;
 using BoardDefence.Components;
 using BoardDefence.Data;
 using BoardDefence.Models;
@@ -26,18 +27,14 @@ namespace BoardDefence
             builder
                 .RegisterInstance(_gameConfig.Data)
                 .RegisterInstance(_boardConfig.Data)
-                .Register<EntityHandleRegistry>()
                 .RegisterModel<IBoardModel, BoardModel>()
                 .RegisterModel<IGameModel, GameModel>()
                 .RegisterModel<ILevelModel, LevelModel>()
                 .RegisterService<ISpawnService, SpawnService>()
+                .RegisterService<ILevelContainerService, LevelContainerService>()
                 .RegisterController<GameController>()
                 .RegisterController<BoardController>()
-                .RegisterController<DragDropController>()
-                .Register<DefenceSpawnSystem>()
-                .Register<EnemySpawnSystem>()
-                .Register<ProjectileSpawnSystem>()
-                .Register<EntityViewSyncSystem>();
+                .RegisterController<DragDropController>();
         }
 
         public override void Initialize(IServiceLocator services)
@@ -60,6 +57,9 @@ namespace BoardDefence
             InjectionProcessor.Inject(spawnService, container);
             (spawnService as SpawnService)?.Initialize();
 
+            var levelContainerService = services.Get<ILevelContainerService>();
+            InjectionProcessor.Inject(levelContainerService, container);
+
             var gameController = services.Get<GameController>();
             InjectionProcessor.Inject(gameController, container);
             gameController?.Initialize();
@@ -71,18 +71,6 @@ namespace BoardDefence
             var dragDropController = services.Get<DragDropController>();
             InjectionProcessor.Inject(dragDropController, container);
             dragDropController?.Initialize();
-
-            var defenceSpawnSystem = services.Get<DefenceSpawnSystem>();
-            InjectionProcessor.Inject(defenceSpawnSystem, container);
-            defenceSpawnSystem?.Initialize();
-
-            var enemySpawnSystem = services.Get<EnemySpawnSystem>();
-            InjectionProcessor.Inject(enemySpawnSystem, container);
-            enemySpawnSystem?.Initialize();
-
-            var projectileSpawnSystem = services.Get<ProjectileSpawnSystem>();
-            InjectionProcessor.Inject(projectileSpawnSystem, container);
-            projectileSpawnSystem?.Initialize();
 
             var entityManager = World.Current.EntityManager;
 
@@ -98,9 +86,19 @@ namespace BoardDefence
 
             _poolManager = new PoolManager(entityManager, container);
 
-            var viewSyncSystem = services.Get<EntityViewSyncSystem>();
-            InjectionProcessor.Inject(viewSyncSystem, container);
-            viewSyncSystem?.Initialize(_poolManager);
+            if (GameBootstrapper.Systems != null)
+            {
+                foreach (var system in GameBootstrapper.Systems.GetAllSystems())
+                {
+                    if (system is EntityViewSyncSystem viewSync)
+                    {
+                        viewSync.SetPoolManager(_poolManager);
+                        break;
+                    }
+                }
+            }
+
+            (levelContainerService as LevelContainerService)?.Initialize();
         }
 
         public override void Shutdown()

@@ -2,7 +2,6 @@ using Strada.Core.ECS;
 using Strada.Core.ECS.Systems;
 using Strada.Core.ECS.World;
 using Strada.Core.Modules;
-using Strada.Core.Sync;
 using BoardDefence.Components;
 using BoardDefence.Events;
 using UnityEngine;
@@ -17,7 +16,6 @@ namespace BoardDefence.Systems
         Order = 400)]
     public class ProjectileMovementSystem : SystemBase
     {
-
         private const float HIT_DISTANCE = 0.3f;
 
         protected override void OnUpdate(float deltaTime)
@@ -58,6 +56,9 @@ namespace BoardDefence.Systems
 
         private void ProcessHit(Entity projectileEntity, ProjectileComponent projectile)
         {
+            if (!EntityManager.HasComponent<ProjectileTag>(projectileEntity))
+                return;
+
             if (!projectile.TargetEntity.IsNull && EntityManager.Exists(projectile.TargetEntity))
             {
                 if (EntityManager.HasComponent<HealthComponent>(projectile.TargetEntity))

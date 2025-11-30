@@ -1,52 +1,67 @@
 using System;
 using System.Collections.Generic;
-using Strada.Core.Communication;
-using Strada.Core.DI.Attributes;
-using Strada.Core.ECS.Core;
+using Strada.Core.Bootstrap;
+using Strada.Core.ECS;
+using Strada.Core.ECS.Systems;
 using Strada.Core.ECS.World;
+using Strada.Core.Modules;
 using Strada.Core.Sync;
+using BoardDefence.Components;
 using BoardDefence.Events;
+using BoardDefence.Services;
 using BoardDefence.Views;
 using UnityEngine;
 
 namespace BoardDefence.Systems
 {
-    /// <summary>
-    /// Handles view spawning/despawning in response to ECS entity events.
-    /// Uses PoolManager for persistent, scene-independent view pooling.
-    /// </summary>
-    public class EntityViewSyncSystem : IDisposable
+    public enum ViewCategory : byte
     {
-        [Inject] private EventBus _eventBus;
-        [Inject] private EntityHandleRegistry _handleRegistry;
+        None = 0,
+        Defence = 1,
+        Enemy = 2,
+        Projectile = 3
+    }
 
+    [StradaSystem(
+        Module = "BoardDefence",
+        Category = "View",
+        Description = "Synchronizes ECS entities with Unity views",
+        Phase = UpdatePhase.LateUpdate,
+        Order = 900)]
+    public class EntityViewSyncSystem : SystemBase
+    {
+        private ILevelContainerService _levelContainer;
         private PoolManager _poolManager;
-        private readonly Dictionary<EntityHandle, Type> _handleToViewType = new(64);
+        private readonly Dictionary<long, ViewCategory> _entityToViewType = new(64);
 
         private const int DEFENCE_POOL_SIZE = 20;
         private const int ENEMY_POOL_SIZE = 30;
         private const int PROJECTILE_POOL_SIZE = 50;
 
-        public void Initialize(PoolManager poolManager)
+        public void SetPoolManager(PoolManager poolManager)
         {
-            _poolManager = poolManager ?? throw new ArgumentNullException(nameof(poolManager));
+            _poolManager = poolManager;
+        }
 
-            RegisterPools();
+        protected override void OnInitialize()
+        {
+            _levelContainer = GameBootstrapper.Services.Get<ILevelContainerService>();
+
+            if (_poolManager != null)
+            {
+                RegisterPools();
+            }
+
             SubscribeToEvents();
         }
+
+        protected override void OnUpdate(float deltaTime) { }
 
         private void RegisterPools()
         {
             var defencePrefab = Resources.Load<GameObject>("Prefabs/DefenceItem");
             var enemyPrefab = Resources.Load<GameObject>("Prefabs/Enemy");
             var projectilePrefab = Resources.Load<GameObject>("Prefabs/Projectile");
-
-            if (defencePrefab == null)
-                Debug.LogError("[EntityViewSyncSystem] Failed to load DefenceItem prefab");
-            if (enemyPrefab == null)
-                Debug.LogError("[EntityViewSyncSystem] Failed to load Enemy prefab");
-            if (projectilePrefab == null)
-                Debug.LogError("[EntityViewSyncSystem] Failed to load Projectile prefab");
 
             if (defencePrefab != null)
                 _poolManager.RegisterPool<DefenceItemView>(defencePrefab, DEFENCE_POOL_SIZE);
@@ -60,108 +75,106 @@ namespace BoardDefence.Systems
 
         private void SubscribeToEvents()
         {
-            _eventBus.Subscribe<DefencePlacedEvent>(OnDefencePlaced);
-            _eventBus.Subscribe<EnemySpawnedEvent>(OnEnemySpawned);
-            _eventBus.Subscribe<ProjectileSpawnedEvent>(OnProjectileSpawned);
-            _eventBus.Subscribe<EntityDestroyedEvent>(OnEntityDestroyed);
-            _eventBus.RegisterSignalHandler<CleanupLevelSignal>(OnCleanupLevel);
+            EventBus.Subscribe<DefencePlacedEvent>(OnDefencePlaced);
+            EventBus.Subscribe<EnemySpawnedEvent>(OnEnemySpawned);
+            EventBus.Subscribe<ProjectileSpawnedEvent>(OnProjectileSpawned);
+            EventBus.Subscribe<EntityDestroyedEvent>(OnEntityDestroyed);
+            RegisterSignalHandler<CleanupLevelSignal>(OnCleanupLevel);
         }
 
         private void OnDefencePlaced(DefencePlacedEvent evt)
         {
-            var entity = _handleRegistry.Resolve(evt.Handle);
+            var entity = HandleRegistry.Resolve(evt.Handle);
             if (entity.IsNull) return;
 
-            var view = _poolManager.Spawn<DefenceItemView>(entity);
+            var view = _poolManager.Spawn<DefenceItemView>(entity, _levelContainer.Defences);
             if (view != null)
             {
-                _handleToViewType[evt.Handle] = typeof(DefenceItemView);
+                _entityToViewType[GetEntityKey(entity)] = ViewCategory.Defence;
                 view.ForceSyncBindings();
             }
         }
 
         private void OnEnemySpawned(EnemySpawnedEvent evt)
         {
-            var entity = _handleRegistry.Resolve(evt.Handle);
+            var entity = HandleRegistry.Resolve(evt.Handle);
             if (entity.IsNull) return;
 
-            var view = _poolManager.Spawn<EnemyView>(entity);
+            var view = _poolManager.Spawn<EnemyView>(entity, _levelContainer.Enemies);
             if (view != null)
             {
-                _handleToViewType[evt.Handle] = typeof(EnemyView);
+                _entityToViewType[GetEntityKey(entity)] = ViewCategory.Enemy;
                 view.ForceSyncBindings();
             }
         }
 
         private void OnProjectileSpawned(ProjectileSpawnedEvent evt)
         {
-            var entity = _handleRegistry.Resolve(evt.Handle);
+            var entity = HandleRegistry.Resolve(evt.Handle);
             if (entity.IsNull) return;
 
-            var view = _poolManager.Spawn<ProjectileView>(entity);
+            var view = _poolManager.Spawn<ProjectileView>(entity, _levelContainer.Projectiles);
             if (view != null)
             {
-                _handleToViewType[evt.Handle] = typeof(ProjectileView);
+                _entityToViewType[GetEntityKey(entity)] = ViewCategory.Projectile;
                 view.ForceSyncBindings();
             }
         }
 
         private void OnEntityDestroyed(EntityDestroyedEvent evt)
         {
-            if (!_handleToViewType.TryGetValue(evt.Handle, out var viewType))
-                return;
-
-            var entity = _handleRegistry.Resolve(evt.Handle);
-            _handleToViewType.Remove(evt.Handle);
-            _handleRegistry.Unregister(evt.Handle);
-
+            var entity = HandleRegistry.Resolve(evt.Handle);
             if (entity.IsNull) return;
 
-            if (viewType == typeof(DefenceItemView))
-                _poolManager.DespawnByEntity<DefenceItemView>(entity);
-            else if (viewType == typeof(EnemyView))
-                _poolManager.DespawnByEntity<EnemyView>(entity);
-            else if (viewType == typeof(ProjectileView))
-                _poolManager.DespawnByEntity<ProjectileView>(entity);
+            var key = GetEntityKey(entity);
+            if (!_entityToViewType.TryGetValue(key, out var viewCategory))
+                return;
+
+            switch (viewCategory)
+            {
+                case ViewCategory.Defence:
+                    if (EntityManager.HasComponent<GridPositionComponent>(entity))
+                    {
+                        var pos = EntityManager.GetComponent<GridPositionComponent>(entity);
+                        Publish(new DefenceDestroyedEvent
+                        {
+                            Handle = evt.Handle,
+                            Column = pos.Column,
+                            Row = pos.Row
+                        });
+                    }
+                    _poolManager.DespawnByEntity<DefenceItemView>(entity);
+                    break;
+
+                case ViewCategory.Enemy:
+                    _poolManager.DespawnByEntity<EnemyView>(entity);
+                    break;
+
+                case ViewCategory.Projectile:
+                    _poolManager.DespawnByEntity<ProjectileView>(entity);
+                    break;
+            }
+
+            _entityToViewType.Remove(key);
+            HandleRegistry.Unregister(evt.Handle);
         }
 
         private void OnCleanupLevel(CleanupLevelSignal signal)
         {
-            var entityManager = World.Current?.EntityManager;
-            if (entityManager == null) return;
-
-            var handlesToCleanup = new List<EntityHandle>(_handleToViewType.Keys);
-
-            foreach (var handle in handlesToCleanup)
-            {
-                var entity = _handleRegistry.Resolve(handle);
-                if (entity.IsNull) continue;
-
-                if (_handleToViewType.TryGetValue(handle, out var viewType))
-                {
-                    if (viewType == typeof(DefenceItemView))
-                        _poolManager.DespawnByEntity<DefenceItemView>(entity);
-                    else if (viewType == typeof(EnemyView))
-                        _poolManager.DespawnByEntity<EnemyView>(entity);
-                    else if (viewType == typeof(ProjectileView))
-                        _poolManager.DespawnByEntity<ProjectileView>(entity);
-                }
-
-                _handleRegistry.Unregister(handle);
-                entityManager.DestroyEntity(entity);
-            }
-
-            _handleToViewType.Clear();
+            _poolManager.DespawnAllViews();
+            _entityToViewType.Clear();
+            HandleRegistry.Clear();
         }
 
-        public void Dispose()
+        protected override void OnDispose()
         {
-            _eventBus.Unsubscribe<DefencePlacedEvent>(OnDefencePlaced);
-            _eventBus.Unsubscribe<EnemySpawnedEvent>(OnEnemySpawned);
-            _eventBus.Unsubscribe<ProjectileSpawnedEvent>(OnProjectileSpawned);
-            _eventBus.Unsubscribe<EntityDestroyedEvent>(OnEntityDestroyed);
-
-            _handleToViewType.Clear();
+            EventBus.Unsubscribe<DefencePlacedEvent>(OnDefencePlaced);
+            EventBus.Unsubscribe<EnemySpawnedEvent>(OnEnemySpawned);
+            EventBus.Unsubscribe<ProjectileSpawnedEvent>(OnProjectileSpawned);
+            EventBus.Unsubscribe<EntityDestroyedEvent>(OnEntityDestroyed);
+            _entityToViewType.Clear();
         }
+
+        private static long GetEntityKey(Entity entity) => ((long)entity.Index << 32) | (uint)entity.Version;
     }
 }

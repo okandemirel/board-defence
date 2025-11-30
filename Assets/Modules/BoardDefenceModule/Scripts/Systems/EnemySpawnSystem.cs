@@ -1,9 +1,7 @@
-using Strada.Core.Communication;
+using Strada.Core.Bootstrap;
+using Strada.Core.ECS.Systems;
 using Strada.Core.ECS.World;
-using Strada.Core.DI.Attributes;
-using Strada.Core.ECS.Core;
-using Strada.Core.Patterns.Interfaces;
-using Strada.Core.Sync;
+using Strada.Core.Modules;
 using BoardDefence.Signals;
 using BoardDefence.Components;
 using BoardDefence.Data;
@@ -11,65 +9,74 @@ using BoardDefence.Events;
 
 namespace BoardDefence.Systems
 {
-    public class EnemySpawnSystem : IInitializable
+    [StradaSystem(
+        Module = "BoardDefence",
+        Category = "Spawning",
+        Description = "Spawns enemy entities in response to signals",
+        Phase = UpdatePhase.Update,
+        Order = 60)]
+    public class EnemySpawnSystem : SystemBase
     {
-        [Inject] private GameConfigData _gameConfig;
-        [Inject] private BoardData _boardData;
-        [Inject] private EventBus _eventBus;
-        [Inject] private EntityHandleRegistry _handleRegistry;
+        private GameConfigData _gameConfig;
+        private float _cellSize;
+        private int _rows;
 
-        private EntityManager EntityManager => World.Current?.EntityManager;
-
-        public void Initialize()
+        protected override void OnInitialize()
         {
-            _eventBus.RegisterSignalHandler<SpawnEnemySignal>(SpawnEnemy);
+            _gameConfig = GameBootstrapper.Services.Get<GameConfigData>();
+            RegisterSignalHandler<SpawnEnemySignal>(SpawnEnemy);
+        }
+
+        protected override void OnUpdate(float deltaTime)
+        {
+            if (_cellSize == 0f)
+            {
+                ForEach<BoardConfigComponent>((int idx, ref BoardConfigComponent config) =>
+                {
+                    _cellSize = config.CellSize;
+                    _rows = config.Rows;
+                });
+            }
         }
 
         private void SpawnEnemy(SpawnEnemySignal signal)
         {
-            var entityManager = EntityManager;
-            if (entityManager == null) return;
-
             if (!_gameConfig.Enemies.TryGetValue(signal.EnemyKey, out var data))
                 return;
 
-            float worldX = signal.Column * _boardData.CellSize;
-            float worldZ = _boardData.Rows * _boardData.CellSize;
+            float worldX = signal.Column * _cellSize;
+            float worldZ = _rows * _cellSize;
 
-            var entity = entityManager.CreateEntity();
+            var entity = CreateEntity();
 
-            entityManager.AddComponent(entity, new EnemyTag());
-
-            entityManager.AddComponent(entity, new EnemyTypeComponent
+            EntityManager.AddComponent(entity, new EnemyTag());
+            EntityManager.AddComponent(entity, new EnemyTypeComponent
             {
                 TypeIndex = data.Id,
                 Damage = data.Damage,
                 ScoreValue = data.ScoreValue
             });
-
-            entityManager.AddComponent(entity, new GridPositionComponent
+            EntityManager.AddComponent(entity, new GridPositionComponent
             {
                 Column = signal.Column,
-                Row = _boardData.Rows,
+                Row = _rows,
                 WorldX = worldX,
                 WorldY = 0f,
                 WorldZ = worldZ
             });
-
-            entityManager.AddComponent(entity, new MoveSpeedComponent
+            EntityManager.AddComponent(entity, new MoveSpeedComponent
             {
                 BlocksPerSecond = data.MoveSpeed
             });
-
-            entityManager.AddComponent(entity, new HealthComponent
+            EntityManager.AddComponent(entity, new HealthComponent
             {
                 Current = data.MaxHealth,
                 Max = data.MaxHealth
             });
 
-            var handle = _handleRegistry.Register(entity);
+            var handle = HandleRegistry.Register(entity);
 
-            _eventBus.Publish(new EnemySpawnedEvent
+            Publish(new EnemySpawnedEvent
             {
                 Handle = handle,
                 Column = signal.Column,

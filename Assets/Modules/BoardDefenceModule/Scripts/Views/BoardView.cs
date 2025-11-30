@@ -3,39 +3,54 @@ using Strada.Core.Patterns;
 using Strada.Core.Communication;
 using BoardDefence.Models;
 using BoardDefence.Events;
+using BoardDefence.Services;
 
 namespace BoardDefence.Views
 {
     public class BoardView : View
     {
         [SerializeField] private GameObject _cellPrefab;
-        [SerializeField] private Transform _cellsContainer;
         [SerializeField] private Color _dragHighlightColor = new Color(0.3f, 0.8f, 0.3f, 0.5f);
 
         private IBoardModel _boardModel;
         private EventBus _eventBus;
+        private ILevelContainerService _levelContainer;
         private CellView[,] _cells;
         private bool _isDragActive;
 
-        public void Inject(IBoardModel boardModel, EventBus eventBus)
+        public void Inject(IBoardModel boardModel, EventBus eventBus, ILevelContainerService levelContainer)
         {
             _boardModel = boardModel;
             _eventBus = eventBus;
+            _levelContainer = levelContainer;
         }
 
         public override void Initialize()
         {
             base.Initialize();
-            SubscribeToDragEvents();
+            SubscribeToEvents();
         }
 
-        private void SubscribeToDragEvents()
+        private void SubscribeToEvents()
         {
             if (_eventBus == null) return;
 
             _eventBus.Subscribe<DragStartedEvent>(OnDragStarted);
             _eventBus.Subscribe<DragEndedEvent>(OnDragEnded);
             _eventBus.Subscribe<PlacementValidEvent>(OnPlacementValid);
+            _eventBus.Subscribe<LevelStartedEvent>(OnLevelStarted);
+            _eventBus.RegisterSignalHandler<CleanupLevelSignal>(OnCleanupLevel);
+        }
+
+        private void OnLevelStarted(LevelStartedEvent evt)
+        {
+            DestroyGrid();
+            CreateGrid();
+        }
+
+        private void OnCleanupLevel(CleanupLevelSignal signal)
+        {
+            DestroyGrid();
         }
 
         private void OnDragStarted(DragStartedEvent evt)
@@ -93,38 +108,50 @@ namespace BoardDefence.Views
 
         protected override void OnShow()
         {
-            if (_cells == null)
-            {
-                CreateGrid();
-            }
         }
 
         private void CreateGrid()
         {
-            if (_boardModel == null || _cellPrefab == null) return;
+            if (_boardModel == null || _cellPrefab == null || _levelContainer?.Board == null) return;
 
             _cells = new CellView[_boardModel.Columns, _boardModel.Rows];
             float cellSize = _boardModel.CellSize;
-
-            var container = _cellsContainer != null ? _cellsContainer : transform;
 
             for (int row = 0; row < _boardModel.Rows; row++)
             {
                 for (int col = 0; col < _boardModel.Columns; col++)
                 {
-                    var cellGO = Instantiate(_cellPrefab, container);
+                    var cellGO = Instantiate(_cellPrefab, _levelContainer.Board);
                     cellGO.transform.localPosition = new Vector3(col * cellSize, 0f, row * cellSize);
 
                     var cellView = cellGO.GetComponent<CellView>();
                     if (cellView != null)
                     {
-                        cellView.Setup(col, row, row < _boardModel.PlaceableRowCount); // Bottom rows are placeable
+                        cellView.Setup(col, row, row < _boardModel.PlaceableRowCount);
                         cellView.OnCellClicked += HandleCellClicked;
                     }
 
                     _cells[col, row] = cellView;
                 }
             }
+        }
+
+        private void DestroyGrid()
+        {
+            if (_cells == null || _boardModel == null) return;
+
+            for (int row = 0; row < _boardModel.Rows; row++)
+            {
+                for (int col = 0; col < _boardModel.Columns; col++)
+                {
+                    if (_cells[col, row] != null)
+                    {
+                        _cells[col, row].OnCellClicked -= HandleCellClicked;
+                        Destroy(_cells[col, row].gameObject);
+                    }
+                }
+            }
+            _cells = null;
         }
 
         private void HandleCellClicked(int column, int row)
@@ -136,7 +163,7 @@ namespace BoardDefence.Views
         {
             if (_cells == null || _boardModel == null) return;
 
-            for (int row = 0; row < _boardModel.PlaceableRowCount; row++) // Bottom rows are placeable
+            for (int row = 0; row < _boardModel.PlaceableRowCount; row++)
             {
                 for (int col = 0; col < _boardModel.Columns; col++)
                 {
@@ -155,20 +182,7 @@ namespace BoardDefence.Views
 
         protected override void OnHide()
         {
-            if (_cells == null || _boardModel == null) return;
-
-            for (int row = 0; row < _boardModel.Rows; row++)
-            {
-                for (int col = 0; col < _boardModel.Columns; col++)
-                {
-                    if (_cells[col, row] != null)
-                    {
-                        _cells[col, row].OnCellClicked -= HandleCellClicked;
-                        Destroy(_cells[col, row].gameObject);
-                    }
-                }
-            }
-            _cells = null;
+            DestroyGrid();
         }
     }
 }
