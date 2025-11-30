@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b437879ab44848c5aeade2d3c643761, type: 3}
+  m_Name: CD_Board
+  m_EditorClassIdentifier: 
+  _guid: 1c582bf7-7483-400d-95f2-40c06a543d5e
+  _data:
+    Columns: 4
+    Rows: 8
+    PlaceableRowsFromBottom: 4
+    CellSize: 1
+    CellSpacing: 0.1
+    PlaceableZoneColor: {r: 0.2, g: 0.5, b: 0.2, a: 0.3}
+    NonPlaceableZoneColor: {r: 0.5, g: 0.2, b: 0.2, a: 0.3}

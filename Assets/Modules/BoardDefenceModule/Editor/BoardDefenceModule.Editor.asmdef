@@ -1,0 +1,21 @@
+{
+    "name": "BoardDefenceModule.Editor",
+    "rootNamespace": "BoardDefence.Editor",
+    "references": [
+        "BoardDefenceModule",
+        "Strada.Core",
+        "Strada.Modules.Screen",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

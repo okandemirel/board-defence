@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f54fca0ed8e144247a8abdcff0278265, type: 3}
+  m_Name: CD_Levels
+  m_EditorClassIdentifier: 
+  _guid: f5b2efd4-0707-4503-a905-f68164293d03
+  _levels:
+  - LevelName: Level 1
+    AvailableDefences:
+    - DefenceKey: Archer
+      Count: 3
+    - DefenceKey: Cannon
+      Count: 2
+    - DefenceKey: Bomb
+      Count: 1
+    Waves:
+    - WaveNumber: 1
+      DelayBeforeWave: 2
+      Enemies:
+      - EnemyKey: Goblin
+        Count: 3
+        SpawnColumn: -1
+      - EnemyKey: Orc
+        Count: 1
+        SpawnColumn: -1
+      - EnemyKey: Skeleton
+        Count: 1
+        SpawnColumn: -1
+      SpawnInterval: 2
+  - LevelName: Level 2
+    AvailableDefences:
+    - DefenceKey: Archer
+      Count: 3
+    - DefenceKey: Cannon
+      Count: 4
+    - DefenceKey: Bomb
+      Count: 2
+    Waves:
+    - WaveNumber: 1
+      DelayBeforeWave: 2
+      Enemies:
+      - EnemyKey: Goblin
+        Count: 5
+        SpawnColumn: -1
+      - EnemyKey: Orc
+        Count: 2
+        SpawnColumn: -1
+      - EnemyKey: Skeleton
+        Count: 3
+        SpawnColumn: -1
+      SpawnInterval: 1.5
+  - LevelName: Level 3
+    AvailableDefences:
+    - DefenceKey: Archer
+      Count: 5
+    - DefenceKey: Cannon
+      Count: 7
+    - DefenceKey: Bomb
+      Count: 5
+    Waves:
+    - WaveNumber: 1
+      DelayBeforeWave: 2
+      Enemies:
+      - EnemyKey: Goblin
+        Count: 7
+        SpawnColumn: -1
+      - EnemyKey: Orc
+        Count: 3
+        SpawnColumn: -1
+      - EnemyKey: Skeleton
+        Count: 5
+        SpawnColumn: -1
+      SpawnInterval: 1.2

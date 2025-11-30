@@ -1,0 +1,22 @@
+{
+    "name": "BoardDefenceModule",
+    "rootNamespace": "BoardDefence",
+    "references": [
+        "Strada.Core",
+        "Strada.Modules.Screen",
+        "Unity.Entities",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

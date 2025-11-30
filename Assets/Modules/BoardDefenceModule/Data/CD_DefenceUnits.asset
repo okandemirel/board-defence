@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 223daf1e5f3bb4ae985e38cc304adc94, type: 3}
+  m_Name: CD_DefenceUnits
+  m_EditorClassIdentifier: 
+  _guid: d44e1723-d320-482c-80a0-3abc6b4a7487
+  _entries:
+  - Key: Archer
+    Value:
+      Id: 0
+      Damage: 3
+      Range: 4
+      AttackInterval: 3
+      Direction: 0
+      ProjectileSpeed: 10
+      CardColor: {r: 0.2, g: 0.7, b: 0.3, a: 1}
+  - Key: Cannon
+    Value:
+      Id: 1
+      Damage: 5
+      Range: 2
+      AttackInterval: 4
+      Direction: 0
+      ProjectileSpeed: 10
+      CardColor: {r: 0.9, g: 0.5, b: 0.1, a: 1}
+  - Key: Bomb
+    Value:
+      Id: 2
+      Damage: 10
+      Range: 1
+      AttackInterval: 5
+      Direction: 1
+      ProjectileSpeed: 10
+      CardColor: {r: 0.8, g: 0.2, b: 0.2, a: 1}
