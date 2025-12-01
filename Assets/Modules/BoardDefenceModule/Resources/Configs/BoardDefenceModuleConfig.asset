@@ -64,6 +64,38 @@ MonoBehaviour:
     _enabled: 1
     _category: Combat
     _description: Acquires targets and fires projectiles from defence items
+  - _systemType:
+      _assemblyQualifiedName: BoardDefence.Systems.DefenceSpawnSystem, BoardDefenceModule,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    _phase: 1
+    _order: 50
+    _enabled: 1
+    _category: Spawning
+    _description: Spawns defence entities in response to signals
+  - _systemType:
+      _assemblyQualifiedName: BoardDefence.Systems.EnemySpawnSystem, BoardDefenceModule,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    _phase: 1
+    _order: 60
+    _enabled: 1
+    _category: Spawning
+    _description: Spawns enemy entities in response to signals
+  - _systemType:
+      _assemblyQualifiedName: BoardDefence.Systems.EntityViewSyncSystem, BoardDefenceModule,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    _phase: 2
+    _order: 900
+    _enabled: 1
+    _category: View
+    _description: Synchronizes ECS entities with Unity views
+  - _systemType:
+      _assemblyQualifiedName: BoardDefence.Systems.ProjectileSpawnSystem, BoardDefenceModule,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    _phase: 1
+    _order: 100
+    _enabled: 1
+    _category: Spawning
+    _description: Spawns projectile entities in response to signals
   _services: []
   _dependencies: []
   _gameConfig: {fileID: 11400000, guid: 1b1ca4aedb1a84e5b8a906d3885f6ff6, type: 2}
