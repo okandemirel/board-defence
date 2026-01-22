@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs ls:*)",
+      "Bash(git -C \"/Users/okanunico/Documents/board-defence\" status --short)"
+    ]
+  }
+}

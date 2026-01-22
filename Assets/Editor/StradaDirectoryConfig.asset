@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9817089ba33054eb0a96ffe2fb49c907, type: 3}
+  m_Name: StradaDirectoryConfig
+  m_EditorClassIdentifier: 
+  _folders:
+  - Path: Scripts
+    IsMandatory: 1
+    IsOptional: 0
+    RequiredComponent: 0
+    ApplicableTypes: 
+  - Path: Scripts/Interfaces
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 3
+    ApplicableTypes: 
+  - Path: Scripts/Services
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 4
+    ApplicableTypes: 
+  - Path: Scripts/Controllers
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 5
+    ApplicableTypes: 
+  - Path: Scripts/Models
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 6
+    ApplicableTypes: 
+  - Path: Scripts/Views
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 7
+    ApplicableTypes: 
+  - Path: Scripts/Systems
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 8
+    ApplicableTypes: 
+  - Path: Scripts/Components
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 9
+    ApplicableTypes: 
+  - Path: Scripts/Events
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 13
+    ApplicableTypes: 
+  - Path: Scripts/Signals
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 14
+    ApplicableTypes: 
+  - Path: Scripts/Data/UnityObjects
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 11
+    ApplicableTypes: 
+  - Path: Scripts/Data/ValueObjects
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 12
+    ApplicableTypes: 
+  - Path: Editor
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 17
+    ApplicableTypes: 
+  - Path: Resources/Configs
+    IsMandatory: 0
+    IsOptional: 1
+    RequiredComponent: 0
+    ApplicableTypes: 
+  - Path: Resources/Prefabs
+    IsMandatory: 0
+    IsOptional: 1
+    RequiredComponent: 0
+    ApplicableTypes: 
+  - Path: Tests/Runtime
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 15
+    ApplicableTypes: 
+  - Path: Tests/Editor
+    IsMandatory: 0
+    IsOptional: 0
+    RequiredComponent: 16
+    ApplicableTypes: 
+  - Path: Scenes
+    IsMandatory: 0
+    IsOptional: 1
+    RequiredComponent: 0
+    ApplicableTypes: 

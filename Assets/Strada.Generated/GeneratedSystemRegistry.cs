@@ -14,9 +14,13 @@ namespace Strada.Generated
         {
             typeof(BoardDefence.Systems.AttackCooldownSystem),
             typeof(BoardDefence.Systems.DeathDetectionSystem),
+            typeof(BoardDefence.Systems.DefenceSpawnSystem),
             typeof(BoardDefence.Systems.DestroySystem),
             typeof(BoardDefence.Systems.EnemyMovementSystem),
+            typeof(BoardDefence.Systems.EnemySpawnSystem),
+            typeof(BoardDefence.Systems.EntityViewSyncSystem),
             typeof(BoardDefence.Systems.ProjectileMovementSystem),
+            typeof(BoardDefence.Systems.ProjectileSpawnSystem),
             typeof(BoardDefence.Systems.TargetAcquisitionSystem),
             typeof(Strada.Core.Sync.ViewSyncSystem),
         };
@@ -25,9 +29,13 @@ namespace Strada.Generated
         {
             builder.Register<BoardDefence.Systems.AttackCooldownSystem>(Lifetime.Singleton);
             builder.Register<BoardDefence.Systems.DeathDetectionSystem>(Lifetime.Singleton);
+            builder.Register<BoardDefence.Systems.DefenceSpawnSystem>(Lifetime.Singleton);
             builder.Register<BoardDefence.Systems.DestroySystem>(Lifetime.Singleton);
             builder.Register<BoardDefence.Systems.EnemyMovementSystem>(Lifetime.Singleton);
+            builder.Register<BoardDefence.Systems.EnemySpawnSystem>(Lifetime.Singleton);
+            builder.Register<BoardDefence.Systems.EntityViewSyncSystem>(Lifetime.Singleton);
             builder.Register<BoardDefence.Systems.ProjectileMovementSystem>(Lifetime.Singleton);
+            builder.Register<BoardDefence.Systems.ProjectileSpawnSystem>(Lifetime.Singleton);
             builder.Register<BoardDefence.Systems.TargetAcquisitionSystem>(Lifetime.Singleton);
             builder.Register<Strada.Core.Sync.ViewSyncSystem>(Lifetime.Singleton);
         }
@@ -37,9 +45,13 @@ namespace Strada.Generated
             var systems = new List<ISystem>(SystemTypes.Length);
             systems.Add(container.Resolve<BoardDefence.Systems.AttackCooldownSystem>());
             systems.Add(container.Resolve<BoardDefence.Systems.DeathDetectionSystem>());
+            systems.Add(container.Resolve<BoardDefence.Systems.DefenceSpawnSystem>());
             systems.Add(container.Resolve<BoardDefence.Systems.DestroySystem>());
             systems.Add(container.Resolve<BoardDefence.Systems.EnemyMovementSystem>());
+            systems.Add(container.Resolve<BoardDefence.Systems.EnemySpawnSystem>());
+            systems.Add(container.Resolve<BoardDefence.Systems.EntityViewSyncSystem>());
             systems.Add(container.Resolve<BoardDefence.Systems.ProjectileMovementSystem>());
+            systems.Add(container.Resolve<BoardDefence.Systems.ProjectileSpawnSystem>());
             systems.Add(container.Resolve<BoardDefence.Systems.TargetAcquisitionSystem>());
             systems.Add(container.Resolve<Strada.Core.Sync.ViewSyncSystem>());
             return systems;

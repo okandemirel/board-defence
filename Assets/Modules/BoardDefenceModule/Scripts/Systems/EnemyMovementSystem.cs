@@ -5,6 +5,7 @@ using Strada.Core.Modules;
 using Strada.Core.Sync;
 using BoardDefence.Components;
 using BoardDefence.Events;
+using UnityEngine;
 
 namespace BoardDefence.Systems
 {
@@ -30,29 +31,29 @@ namespace BoardDefence.Systems
 
             var cellSize = _cellSize;
 
-            ForEach<EnemyTag, GridPositionComponent, MoveSpeedComponent>(
-                (int entityIndex, ref EnemyTag tag, ref GridPositionComponent pos, ref MoveSpeedComponent speed) =>
+            ForEach<EnemyTag, GridPositionComponent, MoveSpeedComponent>((int entityIndex, ref EnemyTag tag,
+                ref GridPositionComponent pos, ref MoveSpeedComponent speed) =>
+            {
+                pos.WorldZ -= speed.BlocksPerSecond * cellSize * deltaTime;
+                pos.Row = (int)(pos.WorldZ / cellSize);
+
+                if (pos.WorldZ < 0)
                 {
-                    pos.WorldZ -= speed.BlocksPerSecond * cellSize * deltaTime;
-                    pos.Row = (int)(pos.WorldZ / cellSize);
+                    var entity = EntityManager.GetEntity(entityIndex);
 
-                    if (pos.WorldZ < 0)
+                    int damage = 1;
+                    if (EntityManager.HasComponent<EnemyTypeComponent>(entity))
                     {
-                        var entity = EntityManager.GetEntity(entityIndex);
-
-                        int damage = 1;
-                        if (EntityManager.HasComponent<EnemyTypeComponent>(entity))
-                        {
-                            var enemyType = EntityManager.GetComponent<EnemyTypeComponent>(entity);
-                            damage = enemyType.Damage;
-                        }
-
-                        var handle = HandleRegistry.Register(entity);
-                        Publish(new EnemyReachedBaseEvent { Handle = handle, Damage = damage });
-                        Publish(new EntityDestroyedEvent { Handle = handle });
-                        EntityManager.AddComponent<DestroyTag>(entity);
+                        var enemyType = EntityManager.GetComponent<EnemyTypeComponent>(entity);
+                        damage = enemyType.Damage;
                     }
-                });
+
+                    var handle = HandleRegistry.Register(entity);
+                    Publish(new EnemyReachedBaseEvent { Handle = handle, Damage = damage });
+                    Publish(new EntityDestroyedEvent { Handle = handle });
+                    EntityManager.AddComponent<DestroyTag>(entity);
+                }
+            });
         }
     }
 }
